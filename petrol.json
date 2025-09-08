@@ -1,0 +1,53 @@
+[
+  {
+    "data": {
+      "timestamp": "2025-09-08T21:51:42.686Z",
+      "products": [
+        {
+          "id": 1,
+          "productName": "Xăng RON 95-V",
+          "region1Price": "20.910",
+          "region2Price": "21.320"
+        },
+        {
+          "id": 2,
+          "productName": "Xăng RON 95-III",
+          "region1Price": "20.430",
+          "region2Price": "20.830"
+        },
+        {
+          "id": 3,
+          "productName": "Xăng E10 RON 95-III",
+          "region1Price": "20.070",
+          "region2Price": "20.470"
+        },
+        {
+          "id": 4,
+          "productName": "Xăng E5 RON 92-II",
+          "region1Price": "19.850",
+          "region2Price": "20.240"
+        },
+        {
+          "id": 5,
+          "productName": "DO 0,001S-V",
+          "region1Price": "18.930",
+          "region2Price": "19.300"
+        },
+        {
+          "id": 6,
+          "productName": "DO 0,05S-II",
+          "region1Price": "18.470",
+          "region2Price": "18.830"
+        },
+        {
+          "id": 7,
+          "productName": "Dầu hỏa 2-K",
+          "region1Price": "18.310",
+          "region2Price": "18.670"
+        }
+      ]
+    },
+    "lastUpdate": "2025-09-08T21:51:43.510Z",
+    "timestamp": "2025-09-08T21:51:43.511Z"
+  }
+]
