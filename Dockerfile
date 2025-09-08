@@ -34,8 +34,6 @@ FROM base
 # Install packages needed for deployment
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y \
-    chromium \
-    chromium-sandbox \
     dumb-init \
     fonts-liberation \
     libappindicator3-1 \
@@ -61,15 +59,14 @@ RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
 # Copy built application
 COPY --from=build /app /app
 
+# Install Playwright browsers
+RUN npx playwright install --with-deps chromium
+
 # Switch to non-root user
 USER pptruser
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
-ENV PUPPETEER_EXECUTABLE_PATH="/usr/bin/chromium"
-ENV DISPLAY=":99"
 ENV DEBIAN_FRONTEND=noninteractive
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV CHROME_PATH="/usr/bin/chromium"
 ENTRYPOINT ["dumb-init", "--"]
 CMD [ "npm", "run", "start" ]

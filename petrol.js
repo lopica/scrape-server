@@ -1,12 +1,12 @@
-import puppeteer from "puppeteer";
+import { chromium } from 'playwright';
 
 const url = "https://www.petrolimex.com.vn/index.html";
 
 export async function getAllPetrolData() {
   let browser;
   try {
-    browser = await puppeteer.launch({
-      headless: 'new',
+    browser = await chromium.launch({
+      headless: true,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -17,37 +17,35 @@ export async function getAllPetrolData() {
         '--disable-gpu',
         '--disable-web-security',
         '--disable-features=VizDisplayCompositor'
-      ],
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-      timeout: 60000
+      ]
     });
   } catch (launchError) {
     console.error('❌ Failed to launch browser:', launchError.message);
     throw new Error(`Browser launch failed: ${launchError.message}`);
   }
-  const page = await browser.newPage();
+  
+  const context = await browser.newContext({
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    viewport: { width: 1920, height: 1080 }
+  });
+  const page = await context.newPage();
 
   try {
-    // Chỉnh viewport với error handling
-    try {
-      await page.setViewport({
-        width: 1920,
-        height: 1080,
-        deviceScaleFactor: 1,
-      });
-    } catch (viewportError) {
-      console.log('⚠️ Viewport setting failed, continuing without custom viewport');
-    }
 
     await page.goto(url, { 
-      waitUntil: "networkidle2",
+      waitUntil: "networkidle",
       timeout: 60000
     });
 
     // Click vào link "Giá bán lẻ xăng dầu"
     try {
-      await page.click("text=Giá bán lẻ xăng dầu");
-      await page.waitForSelector("table", { timeout: 30000 });
+      await page.getByText("Giá bán lẻ xăng dầu").click();
+      
+      // Wait for navigation or content to load
+      await page.waitForTimeout(2000);
+      
+      // Wait for table to exist (not necessarily visible)
+      await page.waitForSelector("table", { state: 'attached', timeout: 30000 });
     } catch (clickError) {
       console.log("Trying alternative selector...");
       // Try alternative selector
@@ -58,13 +56,49 @@ export async function getAllPetrolData() {
           targetLink.click();
         }
       });
-      await page.waitForSelector("table", { timeout: 30000 });
+      
+      await page.waitForTimeout(2000);
+      await page.waitForSelector("table", { state: 'attached', timeout: 30000 });
+    }
+    
+    // Wait for table content to be populated
+    try {
+      await page.waitForFunction(() => {
+        const tables = document.querySelectorAll('table');
+        for (let table of tables) {
+          const rows = table.querySelectorAll('tr');
+          if (rows.length > 1) { // More than just header
+            return true;
+          }
+        }
+        return false;
+      }, { timeout: 15000 });
+    } catch (contentError) {
+      console.log('⚠️ Table content may not be fully loaded, continuing anyway...');
     }
 
     // Lấy toàn bộ dữ liệu từ bảng
     const petrolData = await page.evaluate(() => {
-      const table = document.querySelector("table");
-      if (!table) return null;
+      // Find the table with the most content
+      const tables = document.querySelectorAll("table");
+      let bestTable = null;
+      let maxRows = 0;
+      
+      for (let table of tables) {
+        const rows = table.querySelectorAll("tr");
+        if (rows.length > maxRows) {
+          maxRows = rows.length;
+          bestTable = table;
+        }
+      }
+      
+      if (!bestTable) {
+        console.log("No suitable table found");
+        return null;
+      }
+      
+      console.log(`Using table with ${maxRows} rows`);
+      const table = bestTable;
 
       const rows = Array.from(table.querySelectorAll("tr"));
       const data = [];

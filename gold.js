@@ -1,12 +1,12 @@
-import puppeteer from "puppeteer";
+import { chromium } from 'playwright';
 
 export async function scrapeMienBacGoldPrices() {
     let browser;
     
     try {
         // Khởi tạo browser
-        browser = await puppeteer.launch({
-            headless: 'new',
+        browser = await chromium.launch({
+            headless: true,
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
@@ -17,43 +17,33 @@ export async function scrapeMienBacGoldPrices() {
                 '--no-first-run',
                 '--no-zygote',
                 '--disable-gpu'
-            ],
-            executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-            timeout: 60000
+            ]
         });
 
-        const page = await browser.newPage();
-        
-        // Set user agent để tránh bị block
-        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
-        
-        // Set viewport with error handling
-        try {
-            await page.setViewport({ width: 1366, height: 768 });
-        } catch (viewportError) {
-            console.log('⚠️ Viewport setting failed, continuing without custom viewport');
-        }
-        
-        // Set extra headers
-        await page.setExtraHTTPHeaders({
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            'Accept-Language': 'vi-VN,vi;q=0.8,en-US;q=0.5,en;q=0.3',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'DNT': '1',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1'
+        const context = await browser.newContext({
+            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            viewport: { width: 1366, height: 768 },
+            extraHTTPHeaders: {
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Accept-Language': 'vi-VN,vi;q=0.8,en-US;q=0.5,en;q=0.3',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'DNT': '1',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1'
+            }
         });
+        const page = await context.newPage();
         
         console.log('🚀 Đang truy cập website SJC...');
         
         // Truy cập website SJC
         await page.goto('https://sjc.com.vn/', {
-            waitUntil: 'networkidle2',
+            waitUntil: 'networkidle',
             timeout: 30000
         });
 
-        // Chờ bảng giá vàng load
-        await page.waitForSelector('table.sjc-table-show-price tbody', { timeout: 15000 });
+        // Chờ bảng giá vàng load (just wait for it to exist, not be visible)
+        await page.waitForSelector('table.sjc-table-show-price', { timeout: 15000 });
 
         console.log('📊 Đang cào dữ liệu Miền Bắc...');
 
@@ -71,7 +61,17 @@ export async function scrapeMienBacGoldPrices() {
 
         // Chờ dữ liệu load sau khi scroll
         console.log('⏳ Chờ dữ liệu load sau khi scroll...');
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        await page.waitForTimeout(3000);
+        
+        // Try to wait for table content to be populated
+        try {
+            await page.waitForFunction(() => {
+                const table = document.querySelector('table.sjc-table-show-price tbody');
+                return table && table.querySelectorAll('tr').length > 0;
+            }, { timeout: 10000 });
+        } catch (error) {
+            console.log('⚠️ Table content may not be fully loaded, continuing anyway...');
+        }
 
         // Debug - kiểm tra tất cả các table
         const allTables = await page.evaluate(() => {
@@ -92,14 +92,22 @@ export async function scrapeMienBacGoldPrices() {
 
         // Cào dữ liệu Miền Bắc
         const mienBacData = await page.evaluate(() => {
-            const table = document.querySelector('table.sjc-table-show-price tbody');
-            if (!table) {
-                console.log('❌ Không tìm thấy table tbody');
-                return [];
+            // Try multiple selectors
+            let rows = [];
+            const tbody = document.querySelector('table.sjc-table-show-price tbody');
+            if (tbody && tbody.querySelectorAll('tr').length > 0) {
+                rows = Array.from(tbody.querySelectorAll('tr'));
+                console.log(`📋 Found ${rows.length} rows in tbody`);
+            } else {
+                const fullTable = document.querySelector('table.sjc-table-show-price');
+                if (fullTable) {
+                    rows = Array.from(fullTable.querySelectorAll('tr'));
+                    console.log(`📋 Found ${rows.length} rows in full table`);
+                } else {
+                    console.log('❌ No table found');
+                    return [];
+                }
             }
-
-            const rows = Array.from(table.querySelectorAll('tr'));
-            console.log(`📋 Tìm thấy ${rows.length} dòng trong bảng`);
             
             const result = [];
             let isCapturingMienBac = false;
