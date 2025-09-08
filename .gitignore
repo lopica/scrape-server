@@ -2,7 +2,7 @@
 node_modules/
 
 # Claude Code files
-CLAUDE.md
+.claude/
 
 # URL files
 *.url
@@ -57,3 +57,6 @@ jspm_packages/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+petrol.json
+gold.json

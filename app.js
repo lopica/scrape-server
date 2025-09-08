@@ -15,6 +15,13 @@ async function updatePetrolData() {
   try {
     console.log('🚗 Updating petrol data...');
     petrolData = await getAllPetrolData();
+    console.log('🔍 Petrol data result:', petrolData ? 'Success' : 'Failed/Null');
+    
+    if (!petrolData) {
+      console.log('⚠️ No petrol data received from scraper');
+      return;
+    }
+    
     lastPetrolUpdate = new Date().toISOString();
     
     // Đọc dữ liệu cũ và thêm dữ liệu mới
@@ -177,8 +184,9 @@ cron.schedule('0 * * * *', updateGoldData);
 console.log('⏰ Gold data scheduled to update every hour');
 
 // Cập nhật dữ liệu lần đầu
+console.log('🔄 Starting initial data updates...');
 updatePetrolData();
-updateGoldData();
+setTimeout(() => updateGoldData(), 5000); // Delay gold update to avoid conflicts
 
 
 
