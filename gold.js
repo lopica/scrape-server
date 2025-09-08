@@ -16,8 +16,15 @@ export async function scrapeMienBacGoldPrices() {
                 '--disable-accelerated-2d-canvas',
                 '--no-first-run',
                 '--no-zygote',
-                '--disable-gpu'
-            ]
+                '--disable-gpu',
+                '--single-process',
+                '--disable-extensions',
+                '--disable-plugins',
+                '--disable-background-timer-throttling',
+                '--disable-backgrounding-occluded-windows',
+                '--disable-renderer-backgrounding'
+            ],
+            executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined
         });
 
         const page = await browser.newPage();

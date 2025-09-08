@@ -16,8 +16,15 @@ export async function getAllPetrolData() {
         '--no-zygote',
         '--disable-gpu',
         '--disable-web-security',
-        '--disable-features=VizDisplayCompositor'
-      ]
+        '--disable-features=VizDisplayCompositor',
+        '--single-process',
+        '--disable-extensions',
+        '--disable-plugins',
+        '--disable-background-timer-throttling',
+        '--disable-backgrounding-occluded-windows',
+        '--disable-renderer-backgrounding'
+      ],
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined
     });
   } catch (launchError) {
     console.error('❌ Failed to launch browser:', launchError.message);
