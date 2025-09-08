@@ -3,20 +3,26 @@ import puppeteer from "puppeteer";
 const url = "https://www.petrolimex.com.vn/index.html";
 
 export async function getAllPetrolData() {
-  const browser = await puppeteer.launch(
-    {
-  headless: 'new', // or true
-  args: [
-    '--no-sandbox',
-    '--disable-setuid-sandbox',
-    '--disable-dev-shm-usage',
-    '--disable-accelerated-2d-canvas',
-    '--no-first-run',
-    '--no-zygote',
-    '--disable-gpu'
-  ]
-}
-  );
+  let browser;
+  try {
+    browser = await puppeteer.launch({
+      headless: 'new',
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--disable-gpu',
+        '--disable-web-security',
+        '--disable-features=VizDisplayCompositor'
+      ]
+    });
+  } catch (launchError) {
+    console.error('❌ Failed to launch browser:', launchError.message);
+    throw new Error(`Browser launch failed: ${launchError.message}`);
+  }
   const page = await browser.newPage();
 
   // Chỉnh viewport
