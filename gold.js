@@ -6,7 +6,7 @@ export async function scrapeMienBacGoldPrices() {
     try {
         // Khởi tạo browser
         browser = await puppeteer.launch({
-            headless: true,
+            headless: 'new',
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
@@ -16,45 +16,10 @@ export async function scrapeMienBacGoldPrices() {
                 '--disable-accelerated-2d-canvas',
                 '--no-first-run',
                 '--no-zygote',
-                '--disable-gpu',
-                '--single-process',
-                '--disable-extensions',
-                '--disable-plugins',
-                '--disable-background-timer-throttling',
-                '--disable-backgrounding-occluded-windows',
-                '--disable-renderer-backgrounding',
-                '--disable-default-apps',
-                '--disable-translate',
-                '--disable-device-discovery-notifications',
-                '--disable-software-rasterizer',
-                '--disable-background-networking',
-                '--no-default-browser-check',
-                '--no-pings',
-                '--disable-logging',
-                '--disable-permissions-api',
-                '--ignore-ssl-errors',
-                '--ignore-certificate-errors',
-                '--allow-running-insecure-content',
-                '--disable-component-extensions-with-background-pages',
-                '--disable-client-side-phishing-detection',
-                '--virtual-time-budget=5000',
-                '--run-all-compositor-stages-before-draw',
-                '--disable-ipc-flooding-protection',
-                '--disable-hang-monitor',
-                '--disable-prompt-on-repost',
-                '--disable-sync',
-                '--force-color-profile=srgb',
-                '--metrics-recording-only',
-                '--disable-add-to-shelf',
-                '--disable-background-downloads',
-                '--disable-component-update',
-                '--disable-domain-reliability',
-                '--disable-features=TranslateUI'
+                '--disable-gpu'
             ],
             executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-            ignoreDefaultArgs: false,
-            timeout: 60000,
-            pipe: true
+            timeout: 60000
         });
 
         const page = await browser.newPage();
@@ -62,8 +27,12 @@ export async function scrapeMienBacGoldPrices() {
         // Set user agent để tránh bị block
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
         
-        // Set viewport
-        await page.setViewport({ width: 1366, height: 768 });
+        // Set viewport with error handling
+        try {
+            await page.setViewport({ width: 1366, height: 768 });
+        } catch (viewportError) {
+            console.log('⚠️ Viewport setting failed, continuing without custom viewport');
+        }
         
         // Set extra headers
         await page.setExtraHTTPHeaders({
@@ -192,7 +161,11 @@ export async function scrapeMienBacGoldPrices() {
         throw error;
     } finally {
         if (browser) {
-            await browser.close();
+            try {
+                await browser.close();
+            } catch (closeError) {
+                console.error("Error closing browser:", closeError.message);
+            }
         }
     }
 }

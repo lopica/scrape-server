@@ -6,7 +6,7 @@ export async function getAllPetrolData() {
   let browser;
   try {
     browser = await puppeteer.launch({
-      headless: true,
+      headless: 'new',
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -16,46 +16,10 @@ export async function getAllPetrolData() {
         '--no-zygote',
         '--disable-gpu',
         '--disable-web-security',
-        '--disable-features=VizDisplayCompositor',
-        '--single-process',
-        '--disable-extensions',
-        '--disable-plugins',
-        '--disable-background-timer-throttling',
-        '--disable-backgrounding-occluded-windows',
-        '--disable-renderer-backgrounding',
-        '--disable-default-apps',
-        '--disable-translate',
-        '--disable-device-discovery-notifications',
-        '--disable-software-rasterizer',
-        '--disable-background-networking',
-        '--no-default-browser-check',
-        '--no-pings',
-        '--disable-logging',
-        '--disable-permissions-api',
-        '--ignore-ssl-errors',
-        '--ignore-certificate-errors',
-        '--allow-running-insecure-content',
-        '--disable-component-extensions-with-background-pages',
-        '--disable-client-side-phishing-detection',
-        '--virtual-time-budget=5000',
-        '--run-all-compositor-stages-before-draw',
-        '--disable-ipc-flooding-protection',
-        '--disable-hang-monitor',
-        '--disable-prompt-on-repost',
-        '--disable-sync',
-        '--force-color-profile=srgb',
-        '--metrics-recording-only',
-        '--disable-add-to-shelf',
-        '--disable-background-downloads',
-        '--disable-component-update',
-        '--disable-domain-reliability',
-        '--disable-features=TranslateUI',
-        '--disable-ipc-flooding-protection'
+        '--disable-features=VizDisplayCompositor'
       ],
       executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-      ignoreDefaultArgs: false,
-      timeout: 60000,
-      pipe: true
+      timeout: 60000
     });
   } catch (launchError) {
     console.error('❌ Failed to launch browser:', launchError.message);
@@ -63,19 +27,39 @@ export async function getAllPetrolData() {
   }
   const page = await browser.newPage();
 
-  // Chỉnh viewport
-  await page.setViewport({
-    width: 1920,
-    height: 1080,
-    deviceScaleFactor: 1,
-  });
-
   try {
-    await page.goto(url, { waitUntil: "networkidle2" });
+    // Chỉnh viewport với error handling
+    try {
+      await page.setViewport({
+        width: 1920,
+        height: 1080,
+        deviceScaleFactor: 1,
+      });
+    } catch (viewportError) {
+      console.log('⚠️ Viewport setting failed, continuing without custom viewport');
+    }
+
+    await page.goto(url, { 
+      waitUntil: "networkidle2",
+      timeout: 60000
+    });
 
     // Click vào link "Giá bán lẻ xăng dầu"
-    await page.click("text=Giá bán lẻ xăng dầu");
-    await page.waitForSelector("table", { timeout: 10000 });
+    try {
+      await page.click("text=Giá bán lẻ xăng dầu");
+      await page.waitForSelector("table", { timeout: 30000 });
+    } catch (clickError) {
+      console.log("Trying alternative selector...");
+      // Try alternative selector
+      await page.evaluate(() => {
+        const links = Array.from(document.querySelectorAll('a'));
+        const targetLink = links.find(link => link.textContent.includes('Giá bán lẻ xăng dầu'));
+        if (targetLink) {
+          targetLink.click();
+        }
+      });
+      await page.waitForSelector("table", { timeout: 30000 });
+    }
 
     // Lấy toàn bộ dữ liệu từ bảng
     const petrolData = await page.evaluate(() => {
@@ -146,7 +130,13 @@ export async function getAllPetrolData() {
     console.error("Lỗi khi lấy dữ liệu:", error);
     return null;
   } finally {
-    await browser.close();
+    if (browser) {
+      try {
+        await browser.close();
+      } catch (closeError) {
+        console.error("Error closing browser:", closeError.message);
+      }
+    }
   }
 }
 

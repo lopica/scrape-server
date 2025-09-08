@@ -14,7 +14,9 @@ let lastGoldUpdate = null;
 async function updatePetrolData() {
   try {
     console.log('🚗 Updating petrol data...');
+    
     petrolData = await getAllPetrolData();
+    
     console.log('🔍 Petrol data result:', petrolData ? 'Success' : 'Failed/Null');
     
     if (!petrolData) {
@@ -67,6 +69,7 @@ async function updateGoldData() {
     console.log(`🥇 [${startTime.toLocaleTimeString()}] Starting gold data update...`);
     
     goldData = await scrapeMienBacGoldPrices();
+    
     lastGoldUpdate = new Date().toISOString();
     
     // Kiểm tra dữ liệu có hợp lệ không
