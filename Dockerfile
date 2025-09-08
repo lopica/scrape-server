@@ -67,5 +67,9 @@ USER pptruser
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
 ENV PUPPETEER_EXECUTABLE_PATH="/usr/bin/chromium"
+ENV DISPLAY=":99"
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV CHROME_PATH="/usr/bin/chromium"
 ENTRYPOINT ["dumb-init", "--"]
 CMD [ "npm", "run", "start" ]

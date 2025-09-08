@@ -6,7 +6,7 @@ export async function scrapeMienBacGoldPrices() {
     try {
         // Khởi tạo browser
         browser = await puppeteer.launch({
-            headless: 'new',
+            headless: true,
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
@@ -36,11 +36,25 @@ export async function scrapeMienBacGoldPrices() {
                 '--ignore-certificate-errors',
                 '--allow-running-insecure-content',
                 '--disable-component-extensions-with-background-pages',
-                '--disable-client-side-phishing-detection'
+                '--disable-client-side-phishing-detection',
+                '--virtual-time-budget=5000',
+                '--run-all-compositor-stages-before-draw',
+                '--disable-ipc-flooding-protection',
+                '--disable-hang-monitor',
+                '--disable-prompt-on-repost',
+                '--disable-sync',
+                '--force-color-profile=srgb',
+                '--metrics-recording-only',
+                '--disable-add-to-shelf',
+                '--disable-background-downloads',
+                '--disable-component-update',
+                '--disable-domain-reliability',
+                '--disable-features=TranslateUI'
             ],
             executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-            ignoreDefaultArgs: ['--disable-extensions'],
-            timeout: 60000
+            ignoreDefaultArgs: false,
+            timeout: 60000,
+            pipe: true
         });
 
         const page = await browser.newPage();
