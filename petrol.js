@@ -22,9 +22,25 @@ export async function getAllPetrolData() {
         '--disable-plugins',
         '--disable-background-timer-throttling',
         '--disable-backgrounding-occluded-windows',
-        '--disable-renderer-backgrounding'
+        '--disable-renderer-backgrounding',
+        '--disable-default-apps',
+        '--disable-translate',
+        '--disable-device-discovery-notifications',
+        '--disable-software-rasterizer',
+        '--disable-background-networking',
+        '--no-default-browser-check',
+        '--no-pings',
+        '--disable-logging',
+        '--disable-permissions-api',
+        '--ignore-ssl-errors',
+        '--ignore-certificate-errors',
+        '--allow-running-insecure-content',
+        '--disable-component-extensions-with-background-pages',
+        '--disable-client-side-phishing-detection'
       ],
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+      ignoreDefaultArgs: ['--disable-extensions'],
+      timeout: 60000
     });
   } catch (launchError) {
     console.error('❌ Failed to launch browser:', launchError.message);
