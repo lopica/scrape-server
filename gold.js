@@ -6,13 +6,17 @@ export async function scrapeMienBacGoldPrices() {
     try {
         // Khởi tạo browser
         browser = await puppeteer.launch({
-            headless: false,
+            headless: 'new',
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
                 '--disable-dev-shm-usage',
                 '--disable-web-security',
-                '--disable-features=VizDisplayCompositor'
+                '--disable-features=VizDisplayCompositor',
+                '--disable-accelerated-2d-canvas',
+                '--no-first-run',
+                '--no-zygote',
+                '--disable-gpu'
             ]
         });
 

@@ -3,7 +3,20 @@ import puppeteer from "puppeteer";
 const url = "https://www.petrolimex.com.vn/index.html";
 
 export async function getAllPetrolData() {
-  const browser = await puppeteer.launch({ headless: false });
+  const browser = await puppeteer.launch(
+    {
+  headless: 'new', // or true
+  args: [
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-dev-shm-usage',
+    '--disable-accelerated-2d-canvas',
+    '--no-first-run',
+    '--no-zygote',
+    '--disable-gpu'
+  ]
+}
+  );
   const page = await browser.newPage();
 
   // Chỉnh viewport
