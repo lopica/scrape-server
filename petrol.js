@@ -176,20 +176,32 @@ export async function getAllPetrolData() {
 
 
 
-// Function để lấy chỉ một loại xăng cụ thể
+// Function để lấy chỉ một loại xăng cụ thể (using Playwright)
 async function getSpecificFuelData(fuelType = "RON 95-V") {
-  const browser = await puppeteer.launch({ headless: false });
-  const page = await browser.newPage();
-
-  await page.setViewport({
-    width: 1920,
-    height: 1080,
-    deviceScaleFactor: 1,
+  const browser = await chromium.launch({ 
+    headless: true,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-accelerated-2d-canvas',
+      '--no-first-run',
+      '--no-zygote',
+      '--disable-gpu',
+      '--disable-web-security',
+      '--disable-features=VizDisplayCompositor'
+    ]
   });
+  
+  const context = await browser.newContext({
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    viewport: { width: 1920, height: 1080 }
+  });
+  const page = await context.newPage();
 
   try {
-    await page.goto(url, { waitUntil: "networkidle2" });
-    await page.click("text=Giá bán lẻ xăng dầu");
+    await page.goto(url, { waitUntil: "networkidle", timeout: 60000 });
+    await page.getByText("Giá bán lẻ xăng dầu").click();
     await page.waitForSelector("table", { timeout: 10000 });
 
     const specificData = await page.evaluate((targetFuel) => {

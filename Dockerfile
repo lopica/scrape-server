@@ -59,11 +59,11 @@ RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
 # Copy built application
 COPY --from=build /app /app
 
-# Install Playwright browsers
-RUN npx playwright install --with-deps chromium
-
 # Switch to non-root user
 USER pptruser
+
+# Install Playwright browsers as non-root user
+RUN npx playwright install --with-deps chromium
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
