@@ -129,21 +129,33 @@ const server = http.createServer((req, res) => {
 
   switch (pathname) {
     case '/petrol':
-      res.writeHead(200);
-      res.end(JSON.stringify({
-        data: petrolData,
-        lastUpdate: lastPetrolUpdate,
-        timestamp: new Date().toISOString()
-      }, null, 2));
+      try {
+        let petrolFileData = [];
+        if (fs.existsSync('petrol.json')) {
+          const fileContent = fs.readFileSync('petrol.json', 'utf8');
+          petrolFileData = JSON.parse(fileContent);
+        }
+        res.writeHead(200);
+        res.end(JSON.stringify(petrolFileData, null, 2));
+      } catch (error) {
+        res.writeHead(500);
+        res.end(JSON.stringify({ error: 'Failed to read petrol data', message: error.message }));
+      }
       break;
 
     case '/gold':
-      res.writeHead(200);
-      res.end(JSON.stringify({
-        data: goldData,
-        lastUpdate: lastGoldUpdate,
-        timestamp: new Date().toISOString()
-      }, null, 2));
+      try {
+        let goldFileData = [];
+        if (fs.existsSync('gold.json')) {
+          const fileContent = fs.readFileSync('gold.json', 'utf8');
+          goldFileData = JSON.parse(fileContent);
+        }
+        res.writeHead(200);
+        res.end(JSON.stringify(goldFileData, null, 2));
+      } catch (error) {
+        res.writeHead(500);
+        res.end(JSON.stringify({ error: 'Failed to read gold data', message: error.message }));
+      }
       break;
 
     case '/status':
