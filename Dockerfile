@@ -50,20 +50,20 @@ RUN apt-get update -qq && \
     xdg-utils && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
-# Create non-root user
+# Copy built application
+COPY --from=build /app /app
+
+# Install Playwright browsers as root user
+RUN npx playwright install --with-deps chromium
+
+# Create non-root user after installing browsers
 RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
     && mkdir -p /home/pptruser/Downloads \
     && chown -R pptruser:pptruser /home/pptruser \
     && chown -R pptruser:pptruser /app
 
-# Copy built application
-COPY --from=build /app /app
-
 # Switch to non-root user
 USER pptruser
-
-# Install Playwright browsers as non-root user
-RUN npx playwright install --with-deps chromium
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
