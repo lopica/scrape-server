@@ -39,8 +39,9 @@ export async function scrapeMienBacGoldPrices() {
             extraHTTPHeaders: {
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
                 'Accept-Language': 'vi-VN,vi;q=0.8,en-US;q=0.5,en;q=0.3',
-                'Accept-Encoding': 'gzip, deflate, br',
-                'DNT': '1',
+                'Accept-Encoding': 'gzip, deflate',
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache',
                 'Connection': 'keep-alive',
                 'Upgrade-Insecure-Requests': '1'
             }
@@ -49,11 +50,30 @@ export async function scrapeMienBacGoldPrices() {
         
         console.log('🚀 Đang truy cập website SJC...');
         
-        // Truy cập website SJC
-        await page.goto('https://sjc.com.vn/', {
-            waitUntil: 'networkidle',
-            timeout: 30000
-        });
+        // Truy cập website SJC với retry logic
+        let retryCount = 0;
+        const maxRetries = 3;
+        
+        while (retryCount < maxRetries) {
+            try {
+                await page.goto('https://sjc.com.vn/', {
+                    waitUntil: 'domcontentloaded',
+                    timeout: 45000
+                });
+                console.log('✅ Đã kết nối thành công đến website SJC');
+                break;
+            } catch (gotoError) {
+                retryCount++;
+                console.log(`❌ Lần thử ${retryCount}/${maxRetries} thất bại: ${gotoError.message}`);
+                
+                if (retryCount >= maxRetries) {
+                    throw new Error(`Không thể kết nối đến SJC website sau ${maxRetries} lần thử: ${gotoError.message}`);
+                }
+                
+                console.log('⏳ Chờ 5 giây trước khi thử lại...');
+                await new Promise(resolve => setTimeout(resolve, 5000));
+            }
+        }
 
         // Chờ bảng giá vàng load (just wait for it to exist, not be visible)
         await page.waitForSelector('table.sjc-table-show-price', { timeout: 15000 });

@@ -191,6 +191,19 @@ console.log('🔄 Starting initial data updates...');
 updatePetrolData();
 setTimeout(() => updateGoldData(), 5000); // Delay gold update to avoid conflicts
 
+// Graceful shutdown handling
+process.on('SIGINT', () => {
+  console.log('\n🛑 Received SIGINT (Ctrl+C). Shutting down gracefully...');
+  server.close(() => {
+    console.log('✅ Server closed.');
+    process.exit(0);
+  });
+});
 
-
-
+process.on('SIGTERM', () => {
+  console.log('\n🛑 Received SIGTERM. Shutting down gracefully...');
+  server.close(() => {
+    console.log('✅ Server closed.');
+    process.exit(0);
+  });
+});
