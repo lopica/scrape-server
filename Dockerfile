@@ -50,20 +50,28 @@ RUN apt-get update -qq && \
     xdg-utils && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
-# Copy built application
-COPY --from=build /app /app
-
-# Install Playwright browsers as root user
-RUN npx playwright install --with-deps chromium
-
-# Create non-root user after installing browsers
+# Create non-root user first
 RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
     && mkdir -p /home/pptruser/Downloads \
-    && chown -R pptruser:pptruser /home/pptruser \
-    && chown -R pptruser:pptruser /app
+    && chown -R pptruser:pptruser /home/pptruser
+
+# Copy built application
+COPY --from=build --chown=pptruser:pptruser /app /app
+
+# Install Playwright browsers as root user but ensure pptruser can access them
+RUN npx playwright install --with-deps chromium
+
+# Set proper permissions for Playwright cache
+RUN chown -R pptruser:pptruser /root/.cache/ms-playwright || true
+RUN mkdir -p /home/pptruser/.cache && chown -R pptruser:pptruser /home/pptruser/.cache
+RUN cp -r /root/.cache/ms-playwright /home/pptruser/.cache/ || true
+RUN chown -R pptruser:pptruser /home/pptruser/.cache/ms-playwright || true
 
 # Switch to non-root user
 USER pptruser
+
+# Reinstall browsers as non-root user to ensure proper cache location
+RUN npx playwright install chromium
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
