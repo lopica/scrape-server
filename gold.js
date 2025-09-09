@@ -29,7 +29,15 @@ export async function scrapeMienBacGoldPrices() {
                 '--no-pings',
                 '--password-store=basic',
                 '--use-mock-keychain',
-                '--single-process'
+                '--single-process',
+                '--disable-dbus',
+                '--disable-x11-sandbox',
+                '--disable-ipc-flooding-protection',
+                '--disable-background-networking',
+                '--disable-component-extensions-with-background-pages',
+                '--disable-default-apps',
+                '--disable-features=TranslateUI',
+                '--disable-ipc-flooding-protection'
             ]
         });
 

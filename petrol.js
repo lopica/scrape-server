@@ -29,7 +29,13 @@ export async function getAllPetrolData() {
         '--no-pings',
         '--password-store=basic',
         '--use-mock-keychain',
-        '--single-process'
+        '--single-process',
+        '--disable-dbus',
+        '--disable-x11-sandbox',
+        '--disable-ipc-flooding-protection',
+        '--disable-background-networking',
+        '--disable-component-extensions-with-background-pages',
+        '--disable-features=TranslateUI'
       ]
     });
   } catch (launchError) {
@@ -215,7 +221,13 @@ async function getSpecificFuelData(fuelType = "RON 95-V") {
       '--no-pings',
       '--password-store=basic',
       '--use-mock-keychain',
-      '--single-process'
+      '--single-process',
+      '--disable-dbus',
+      '--disable-x11-sandbox',
+      '--disable-ipc-flooding-protection',
+      '--disable-background-networking',
+      '--disable-component-extensions-with-background-pages',
+      '--disable-features=TranslateUI'
     ]
   });
   
